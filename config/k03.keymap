@@ -44,7 +44,7 @@
         to_base_layer: to_base_layer {
             compatible = "zmk,behavior-mod-morph";
             label = "TO_BASE_LAYER";
-            bindings = <&kp ENTER>, <&tog 0>;
+            bindings = <&kp ENTER>, <&to 0>;
 
             #binding-cells = <0>;
             mods = <(MOD_LCTL)>;
