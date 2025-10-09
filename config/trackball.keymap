@@ -19,14 +19,14 @@
             compatible = "zmk,behavior-tap-dance";
             label = "ADJ2";
             #binding-cells = <0>;
-            bindings = <&bt BT_NXT>, <&tog 0>;
+            bindings = <&bt BT_NXT>, <&tog 1>;
         };
 
         adj_td: adj_td {
             compatible = "zmk,behavior-tap-dance";
             label = "ADJ_TD";
             #binding-cells = <0>;
-            bindings = <&hold_mo_tap_mkp 1 MB3>, <&to 3>;
+            bindings = <&hold_mo_tap_mkp 0 MB3>, <&to 3>;
         };
 
         hold_mo_tap_mkp: hold_mo_tap_mkp {
@@ -47,11 +47,11 @@
         base_combo {
             bindings = <&adj_td>;
             key-positions = <0 1>;
-            layers = <0 1 2>;
+            layers = <1 0 2>;
         };
 
         adj_combo {
-            bindings = <&to 1>;
+            bindings = <&to 0>;
             key-positions = <0 1>;
             layers = <3>;
         };
@@ -60,20 +60,20 @@
     keymap {
         compatible = "zmk,keymap";
 
-        base {
-            bindings = <
-&mkp MB1  &hold_mo_tap_mkp 1 MB2
-            >;
-
-            display-name = "Base";
-        };
-
         scroll {
             bindings = <
-&trans  &hold_mo_tap_mkp 2 MB2
+&trans  &to 1
             >;
 
             display-name = "Scroll";
+        };
+
+        base {
+            bindings = <
+&mkp MB1  &hold_mo_tap_mkp 2 MB2
+            >;
+
+            display-name = "Base";
         };
 
         sniper {
