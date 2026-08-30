@@ -25,7 +25,6 @@
             #binding-cells = <0>;
             bindings = <&bt BT_SEL 0>, <&bt BT_CLR>;
         };
-
         adj2: adj2 {
             compatible = "zmk,behavior-tap-dance";
             label = "ADJ2";
@@ -39,7 +38,6 @@
             #binding-cells = <0>;
             bindings = <&hold_mo_tap_mkp 0 MB3>, <&to 3>;
         };
-
         hold_mo_tap_mkp: hold_mo_tap_mkp {
             compatible = "zmk,behavior-hold-tap";
             label = "HOLD_MO_TAP_MKP";
@@ -54,7 +52,6 @@
 
     combos {
         compatible = "zmk,combos";
-
         base_combo {
             bindings = <&adj_td>;
             key-positions = <0 1>;
@@ -62,7 +59,7 @@
         };
 
         adj_combo {
-            bindings = <&to 1>;
+            bindings = <&to 0>;
             key-positions = <0 1>;
             layers = <3>;
         };
@@ -73,12 +70,11 @@
 
         scroll {
             bindings = <
-&trans  &trans
+&trans  &to 1
             >;
 
             display-name = "Scroll";
         };
-
         base {
             bindings = <
 &mkp MB1  &hold_mo_tap_mkp 2 MB2
@@ -108,14 +104,16 @@
 &trackball { cpi = <1000>; };
 
 &trackball_listener {
-    input-processors = <&zip_xy_scaler 9 20>;
+    /* Layer 0 is always active, so scrolling is the default processor chain. */
+    input-processors =
+        <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>,
+        <&zip_xy_scaler 1 32>,
+        <&zip_xy_to_scroll_mapper &zip_scroll_snap>;
 
-    scroller {
-        layers = <1>;
-        input-processors =
-            <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>,
-            <&zip_xy_scaler 1 32>,
-            <&zip_xy_to_scroll_mapper &zip_scroll_snap>;
+    /* Higher-priority modes must be declared before Base/Pointer. */
+    adjust {
+        layers = <3>;
+        input-processors = <&zip_xy_scaler 1 8>;
     };
 
     sniper {
@@ -123,8 +121,8 @@
         input-processors = <&zip_xy_scaler 1 4>;
     };
 
-    adjust {
-        layers = <3>;
-        input-processors = <&zip_xy_scaler 1 8>;
+    pointer {
+        layers = <1>;
+        input-processors = <&zip_xy_scaler 9 20>;
     };
 };
