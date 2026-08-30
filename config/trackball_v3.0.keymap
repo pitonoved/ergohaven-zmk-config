@@ -9,12 +9,17 @@
 #include <dt-bindings/zmk/pointing.h>
 
 / {
+    /*
+     * Trackball is physically rotated 180 degrees (buttons are on top).
+     * Swap the two physical button positions so logical MB1/MB2 remain
+     * left/right from the user's point of view.
+     */
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <2>;
         rows = <1>;
         map = <
-        RC(0,3) RC(0,2)
+        RC(0,2) RC(0,3)
         >;
     };
 
@@ -25,6 +30,7 @@
             #binding-cells = <0>;
             bindings = <&bt BT_SEL 0>, <&bt BT_CLR>;
         };
+
         adj2: adj2 {
             compatible = "zmk,behavior-tap-dance";
             label = "ADJ2";
@@ -32,12 +38,36 @@
             bindings = <&bt BT_NXT>, <&bt BT_CLR_ALL>;
         };
 
+        /*
+         * Both buttons:
+         *   short press -> middle click
+         *   hold        -> Scroll layer (0)
+         */
+        scroll_or_mb3: scroll_or_mb3 {
+            compatible = "zmk,behavior-hold-tap";
+            label = "SCROLL_OR_MB3";
+            bindings = <&to>, <&mkp>;
+
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            hold-while-undecided;
+            hold-while-undecided-linger;
+        };
+
+        /*
+         * Both-button combo:
+         *   single/short -> scroll_or_mb3 (tap = MB3, hold = Scroll)
+         *   double       -> Adjust layer
+         */
         adj_td: adj_td {
             compatible = "zmk,behavior-tap-dance";
             label = "ADJ_TD";
             #binding-cells = <0>;
-            bindings = <&hold_mo_tap_mkp 0 MB3>, <&to 3>;
+            tapping-term-ms = <200>;
+            bindings = <&scroll_or_mb3 0 MB3>, <&to 3>;
         };
+
+        /* Right button: tap = MB2, hold = Sniper layer. */
         hold_mo_tap_mkp: hold_mo_tap_mkp {
             compatible = "zmk,behavior-hold-tap";
             label = "HOLD_MO_TAP_MKP";
@@ -52,12 +82,15 @@
 
     combos {
         compatible = "zmk,combos";
+
+        /* Available in Scroll, Base and Sniper. */
         base_combo {
             bindings = <&adj_td>;
             key-positions = <0 1>;
             layers = <1 0 2>;
         };
 
+        /* In Adjust, both buttons always return directly to Scroll. */
         adj_combo {
             bindings = <&to 0>;
             key-positions = <0 1>;
@@ -68,6 +101,7 @@
     keymap {
         compatible = "zmk,keymap";
 
+        /* Default layer: trackball movement is scrolling. */
         scroll {
             bindings = <
 &trans  &to 1
@@ -75,6 +109,8 @@
 
             display-name = "Scroll";
         };
+
+        /* Pointer mode. */
         base {
             bindings = <
 &mkp MB1  &hold_mo_tap_mkp 2 MB2
@@ -104,25 +140,37 @@
 &trackball { cpi = <1000>; };
 
 &trackball_listener {
-    /* Layer 0 is always active, so scrolling is the default processor chain. */
+    /*
+     * Layer 0 (Scroll) is the default layer.
+     * First correct the physical 180-degree rotation (invert X + Y),
+     * then keep the original vertical scroll direction used by v3.0.
+     */
     input-processors =
-        <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>,
+        <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
         <&zip_xy_scaler 1 32>,
-        <&zip_xy_to_scroll_mapper &zip_scroll_snap>;
+        <&zip_xy_to_scroll_mapper &zip_scroll_snap>,
+        <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
 
-    /* Higher-priority modes must be declared before Base/Pointer. */
+    /* More specific/higher layers go first. */
     adjust {
         layers = <3>;
-        input-processors = <&zip_xy_scaler 1 8>;
+        input-processors =
+            <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&zip_xy_scaler 1 8>;
     };
 
     sniper {
         layers = <2>;
-        input-processors = <&zip_xy_scaler 1 4>;
+        input-processors =
+            <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&zip_xy_scaler 1 4>;
     };
 
     pointer {
         layers = <1>;
-        input-processors = <&zip_xy_scaler 9 20>;
+        input-processors =
+            <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&zip_xy_scaler 9 20>;
     };
 };
+
